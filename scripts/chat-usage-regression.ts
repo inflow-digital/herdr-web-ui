@@ -134,7 +134,9 @@ try {
       : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2, locale: "en-US" });
     try {
       await context.addInitScript((usageCase) => {
-        localStorage.setItem("herdr-web-ui:settings", JSON.stringify({ language: "en", voiceInput: "off", ...usageCase.settings }));
+        if (localStorage.getItem("herdr-web-ui:settings") === null) {
+          localStorage.setItem("herdr-web-ui:settings", JSON.stringify({ language: "en", voiceInput: "off", ...usageCase.settings }));
+        }
         Object.assign(window, { usageCase });
       }, state);
       const page = await context.newPage();
@@ -166,6 +168,10 @@ try {
     assert.ok(await calls(page) > 0, "the explicit action turns the setting on and reads");
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("herdr-web-ui:settings") ?? "{}") as { showUsage?: boolean });
     assert.equal(stored.showUsage, true);
+    await page.reload();
+    await page.locator('.pane-usage-strip[data-state="ready"]').waitFor();
+    assert.ok(await calls(page) > 0, "reload restores the opt-in and reads quota again");
+    assert.match(await strip(page).textContent() ?? "", /62% left/);
   });
   console.log("PASS off by default: an explicit Show plan usage action, no request before it");
 
