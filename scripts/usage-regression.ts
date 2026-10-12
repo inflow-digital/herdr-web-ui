@@ -44,6 +44,8 @@ export async function checkUsageMeters(browser: Browser, origin: string): Promis
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "en-US" });
   try {
     const asked = await staged(context);
+    // the meters count what is used here, so that Settings → Remaining below is a change (what is left is the default)
+    await context.addInitScript(() => { if (localStorage.getItem("herdr-web-ui:settings") === null) localStorage.setItem("herdr-web-ui:settings", JSON.stringify({ usageCount: "used" })); });
     const page = await context.newPage();
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));

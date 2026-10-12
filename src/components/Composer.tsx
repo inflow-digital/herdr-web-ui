@@ -43,7 +43,6 @@ import { modelLabel } from "../lib/modelName.ts";
 import { useFacesArrived } from "../lib/fontFaces.ts";
 import { activeTrigger, applyCompletion, type ActiveTrigger } from "../lib/mentions.ts";
 import { quickReplyButtons, useSettings } from "../lib/settings.ts";
-import { composerUsage, formatPercent, formatResetIn, HIGH_PERCENT, meterPercent, meterText, providerForAgent, statusWindows, usageName, useUsage, windowLabel } from "../lib/usage.ts";
 import { AgentMark } from "./AgentMark.tsx";
 import { BackgroundTasks } from "./BackgroundTasks.tsx";
 import { MicButton, VoiceRecordingPill, useDictation } from "./VoiceInput.tsx";
@@ -73,6 +72,8 @@ export interface ComposerProps {
   restored?: string | null;
   /** an empty chat's greeting: it stands over the composer's column and takes no row of its own */
   greeting?: ReactNode;
+  /** the plan usage strip (PaneUsageStrip) PaneTerminal places over the card */
+  usageStrip?: ReactNode;
   /** true: sent, clear the box; a string: keep the text and say why; a DraftRefusal: the same, and the
    * note offers to send again with `clearDraft`, which clears that draft from the terminal first; a
    * promise settles to any of them */
@@ -233,6 +234,7 @@ export function Composer({
   suggestion = null,
   restored = null,
   greeting = null,
+  usageStrip = null,
   onSend,
   onAbort,
   onUploadImage,
@@ -244,11 +246,6 @@ export function Composer({
   const { fetchPaneCommands, fetchPaneFiles } = useMachineApi();
   const { settings } = useSettings();
   const mobile = useMediaQuery("(max-width: 640px), (pointer: coarse)");
-  const usageEnabled = settings.showUsage && !mobile && machineId === "local" && providerForAgent(agent) !== null;
-  const { report: usageReport } = useUsage(usageEnabled);
-  const usage = usageEnabled && usageReport !== null ? composerUsage(usageReport.providers, agent, settings.usageOrder, settings.usageHidden) : undefined;
-  const usageWindows = usage === undefined ? [] : statusWindows(usage);
-  const usageLimit = usageWindows[0];
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const statusRef = useRef<HTMLDivElement | null>(null);
@@ -832,12 +829,6 @@ export function Composer({
   const hint = composerStatusHint({ uploading, connected, text });
   const model = metadata?.model ? modelLabel(metadata.model) : null;
   const modelShown = Boolean(metadata?.model || metadata?.reasoning_effort);
-  const usageDetail = usageWindows.map((window) => {
-    const reset = formatResetIn(window.resets_at, Date.now());
-    return `${windowLabel(window)} ${meterText(window, settings.usageCount)}${reset ? ` · ${t("Resets in {time}", { time: reset })}` : ""}`;
-  }).join("\n");
-  const usageCaption = usageLimit === undefined ? "" : `${usageLimit.kind === "session" ? "5h" : windowLabel(usageLimit)} ${formatPercent(meterPercent(usageLimit, settings.usageCount))}`;
-  const usageAccessible = usage === undefined ? "" : `${t("Subscription usage")}: ${usageName(usage)}, ${usageDetail.replaceAll("\n", ", ")}`;
   const hintText = hint === null ? null : t(hint === "uploading" ? "Uploading file…" : "Reconnecting… message held here, never queued");
   const menuId = `composer-menu-${paneId}`;
   // the arrow keys move the selection, not the focus (it stays in the box), so the browser does not scroll to it
@@ -884,6 +875,9 @@ export function Composer({
             onClick={() => send(note.draft)}>{t("Clear it and send")}</button>}
         </div>
       )}
+
+      {/* the plan usage of the agent's provider (PaneUsageStrip), over the card it is read with */}
+      {usageStrip}
 
       <div
         ref={surfaceRef}
@@ -1076,13 +1070,6 @@ export function Composer({
                 </span>
               </span>}
               {metadata?.context && <ContextRing context={metadata.context} shown={contextShown} readOnly={mobile} onToggle={() => setContextShown((open) => !open)} />}
-              {usage !== undefined && usage.problem === null && usageLimit !== undefined && <span
-                className={`composer-usage${usageLimit.used_percent >= HIGH_PERCENT ? " is-high" : ""}${usage.problem ? " has-problem" : ""}`}
-                title={`${usageName(usage)}\n${usageDetail}`}
-              >
-                <span aria-hidden="true">{usageCaption}</span>
-                <span className="visually-hidden">{usageAccessible}</span>
-              </span>}
             </span>
             {/* the chip is a button in the left controls; its count is still said here, where a change is announced */}
             {backgroundTasks > 0 && <span className="composer-task-count visually-hidden">{t(backgroundTasks === 1 ? "{n} background task" : "{n} background tasks", { n: backgroundTasks })}</span>}

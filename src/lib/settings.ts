@@ -219,7 +219,7 @@ export const DEFAULT_SETTINGS: Settings = {
   showQuickReplies: false,
   showSuggestionChip: true,
   showUsage: false,
-  usageCount: "used",
+  usageCount: "left",
   usagePace: false,
   usageGlance: "week",
   defaultView: "auto",

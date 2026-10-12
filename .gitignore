@@ -22,3 +22,6 @@ _film/
 
 # one-off screenshot and probe scripts kept inside the repo so imports resolve
 scripts/*.tmp.ts
+
+# screenshots a browser script leaves for a person to look at (scripts/chat-usage-regression.ts)
+artifacts/
