@@ -1,0 +1,152 @@
+/* Plan usage over the chat lens's input card: one quiet row, its details folded under it */
+
+.pane-usage-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  /* on the input card's column (Composer.css: .composer-surface) */
+  width: min(100%, var(--chat-w));
+  margin-inline: auto;
+  /* the resize grip's hit area rises above the card (Composer.css): the strip stops short of it */
+  margin-bottom: max(var(--space-1), var(--composer-grip-h));
+  color: var(--text-dim);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-tight);
+}
+
+.pane-usage-strip svg {
+  flex: none;
+  width: 13px;
+  height: 13px;
+}
+
+.pane-usage-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.pane-usage-summary,
+.pane-usage-optin {
+  display: inline-flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+  min-height: var(--chip-h);
+  padding: 2px var(--space-2);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-pill);
+  /* a phone's composer floats over the transcript: the pill keeps its text readable */
+  background: var(--bg-panel);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pane-usage-summary[aria-expanded="true"] { background: var(--bg-hover); }
+
+@media (hover: hover) {
+  .pane-usage-summary:hover,
+  .pane-usage-optin:hover { background: var(--bg-hover); color: var(--text); }
+}
+
+.pane-usage-source,
+.pane-usage-note {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.pane-usage-note {
+  align-self: flex-start;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--bg-panel);
+}
+
+.pane-usage-window {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.pane-usage-label { color: var(--text-dim); }
+
+.pane-usage-value {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.pane-usage-window.is-high .pane-usage-value,
+.pane-usage-list .is-high .pane-usage-value { color: var(--status-blocked); }
+
+.pane-usage-window.is-empty { color: var(--text-dim); }
+
+.pane-usage-badge {
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--status-blocked-tint);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pane-usage-badge.is-error {
+  background: var(--danger-tint);
+  color: var(--danger-text);
+}
+
+/* old numbers are drawn fainter, the badge says why */
+.pane-usage-strip[data-stale] .pane-usage-window { opacity: 0.6; }
+
+.pane-usage-strip .pane-usage-chevron { width: 14px; height: 14px; }
+.pane-usage-chevron { transition: transform var(--dur-fast) var(--ease-out); }
+.pane-usage-summary[aria-expanded="true"] .pane-usage-chevron { transform: rotate(180deg); }
+
+.pane-usage-account {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  height: var(--chip-h);
+  font-size: var(--fs-xs);
+}
+
+.pane-usage-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-elevated);
+  overflow-wrap: anywhere;
+}
+
+.pane-usage-details p { margin: 0; }
+
+.pane-usage-list {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pane-usage-list li { display: contents; }
+
+.pane-usage-meta { color: var(--text-dim); }
+
+/* a phone keeps the row to the numbers and the source: the resets wait in the details */
+@media (max-width: 640px) {
+  .pane-usage-reset { display: none; }
+}

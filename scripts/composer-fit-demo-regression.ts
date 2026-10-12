@@ -334,19 +334,20 @@ try {
       });
       console.log("PASS connection loss suspends pending items, confirmed holds need Send now, and old bridges keep the draft");
 
+      // plan usage left the card's last row for the strip over the card (PaneUsageStrip, scripts/chat-usage-regression.ts)
       for (const weeklyOnly of [false, true]) await withCard(browser, 1440, { agent: "codex", model: "gpt-5.6", showUsage: true, weeklyOnly }, async (page) => {
-        const usage = page.locator(".composer-status .composer-usage");
-        await usage.waitFor();
-        assert.equal(await usage.evaluate((node) => node.tagName === "SPAN" && !node.hasAttribute("tabindex")), true, "desktop quota is a read-only glance");
-        assert.equal(await usage.locator('span[aria-hidden="true"]').textContent(), weeklyOnly ? "Weekly 84%" : "5h 22%", "the session precedes the tighter week; no session falls back to the week");
-        assert.equal(await usage.evaluate((node) => node.classList.contains("is-high")), weeklyOnly);
-        assert.match(await usage.getAttribute("title") ?? "", /sam@work\.example/);
+        const strip = page.locator('.pane-usage-strip[data-state="ready"]');
+        await strip.waitFor();
+        assert.equal(await page.locator(".composer-status .composer-usage").count(), 0, "the last row holds no quota");
+        assert.deepEqual(await strip.locator(".pane-usage-window").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-kind"))), weeklyOnly ? ["week"] : ["session", "week"]);
+        assert.equal(await strip.locator(".pane-usage-account").count(), 1, "two Codex accounts: picked, never assumed");
       });
       await withCard(browser, 390, { agent: "codex", model: "gpt-5.6", showUsage: true }, async (page) => {
-        assert.equal(await page.locator(".composer-status .composer-usage").count(), 0, "mobile omits the desktop quota even when sidebar limits are enabled");
+        await page.locator('.pane-usage-strip[data-state="ready"]').waitFor();
+        assert.equal(await page.locator(".composer-status .composer-usage").count(), 0);
         assert.equal(await page.locator(".composer-context").evaluate((node) => node.tagName === "SPAN" && !node.hasAttribute("aria-expanded")), true);
       });
-      console.log("PASS desktop quota is read-only and session-first with weekly fallback; mobile keeps only the inert context ring");
+      console.log("PASS plan usage sits over the card, not in its last row; mobile keeps only the inert context ring");
 
       // The message box is typed at the transcript's size (Settings → Chat font size): with a mouse
       // exactly, on a phone never under 16px, the smallest size iOS does not zoom the page for

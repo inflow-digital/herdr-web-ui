@@ -403,13 +403,13 @@ describe("quick replies row", () => {
     expect(DEFAULT_SETTINGS.showUsage).toBe(false);
     expect(sanitizeSettings({ showUsage: true }).showUsage).toBe(true);
     expect(sanitizeSettings({ showUsage: 1 }).showUsage).toBe(false);
-    expect(DEFAULT_SETTINGS.usageCount).toBe("used");
+    expect(DEFAULT_SETTINGS.usageCount).toBe("left");
     // the pace is shown only once chosen
     expect(DEFAULT_SETTINGS.usagePace).toBe(false);
     expect(sanitizeSettings({ usagePace: true }).usagePace).toBe(true);
     expect(sanitizeSettings({ usagePace: "yes" }).usagePace).toBe(false);
-    expect(sanitizeSettings({ usageCount: "left" }).usageCount).toBe("left");
-    expect(sanitizeSettings({ usageCount: "half" }).usageCount).toBe("used");
+    expect(sanitizeSettings({ usageCount: "used" }).usageCount).toBe("used");
+    expect(sanitizeSettings({ usageCount: "half" }).usageCount).toBe("left");
     expect(DEFAULT_SETTINGS.usageGlance).toBe("week");
     expect(sanitizeSettings({ usageGlance: "session" }).usageGlance).toBe("session");
     expect(sanitizeSettings({ usageGlance: "nearest" }).usageGlance).toBe("week");

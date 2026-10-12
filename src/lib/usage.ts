@@ -26,17 +26,6 @@ export const WINDOW_LABEL: Readonly<Record<UsageWindow["kind"], string>> = {
   month: "Monthly",
 };
 
-/** A pane's agent selects a provider, not an inferred active account. */
-export function providerForAgent(agent: string | null | undefined): UsageProviderId | null {
-  return (Object.keys(PROVIDER_MARK) as UsageProviderId[]).find((id) => PROVIDER_MARK[id] === agent) ?? null;
-}
-
-/** The first visible account in Settings order supplies the composer's compact reference. */
-export function composerUsage(providers: readonly ProviderUsage[], agent: string | null, order: readonly string[], hidden: readonly string[]): ProviderUsage | undefined {
-  const providerId = providerForAgent(agent);
-  return orderProviders(providers, order).find((usage) => usage.id === providerId && !hidden.includes(usage.key));
-}
-
 /** Plan-wide five-hour session first, then week; scoped limits do not stand in for either. */
 export function statusWindows(usage: ProviderUsage): UsageWindow[] {
   return (["session", "week"] as const)
@@ -172,6 +161,8 @@ export function moveInOrder(shown: readonly string[], saved: readonly string[], 
 export function useUsage(enabled: boolean) {
   const [report, setReport] = useState<UsageReport | null>(null);
   const [loading, setLoading] = useState(false);
+  /** the last read failed: `report` is the one before it, and is drawn as old */
+  const [failed, setFailed] = useState(false);
   const visible = usePageVisible();
   const generation = useRef(0);
 
@@ -180,13 +171,19 @@ export function useUsage(enabled: boolean) {
     setLoading(true);
     try {
       const next = await fetchUsage(refresh);
-      if (current === generation.current) setReport((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
-    } catch { /* offline or restarting: the last report stays */ }
+      if (current === generation.current) {
+        setReport((previous) => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
+        setFailed(false);
+      }
+    } catch {
+      // offline or restarting: the last report stays, marked as not this read's
+      if (current === generation.current) setFailed(true);
+    }
     finally { if (current === generation.current) setLoading(false); }
   }, []);
 
   useEffect(() => {
-    if (!enabled) { generation.current++; setReport(null); setLoading(false); return; }
+    if (!enabled) { generation.current++; setReport(null); setLoading(false); setFailed(false); return; }
     if (!visible) return;
     void load(false);
     const timer = setInterval(() => void load(false), POLL_MS);
@@ -194,5 +191,5 @@ export function useUsage(enabled: boolean) {
   }, [enabled, visible, load]);
 
   const refresh = useCallback(() => void load(true), [load]);
-  return { report, loading, refresh };
+  return { report, loading, failed, refresh };
 }

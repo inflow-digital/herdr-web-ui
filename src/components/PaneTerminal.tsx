@@ -36,6 +36,7 @@ import { secretPrompt } from "../../shared/secret-prompt.ts";
 import { ChatView } from "./ChatView.tsx";
 import { RenderBoundary } from "./RenderBoundary.tsx";
 import { Composer } from "./Composer.tsx";
+import { PaneUsageStrip } from "./PaneUsageStrip.tsx";
 import { PendingMessages } from "./PendingMessages.tsx";
 import type { AgentStatus, ClientRole, ConversationMetadata, InteractivePrompt, PlanSummary, ServerMessage } from "../../shared/protocol.ts";
 import type { PaneView } from "../lib/actions.ts";
@@ -2490,6 +2491,7 @@ export function PaneTerminal({
               <p className="composer-greeting-where">{machineName && <bdi>{machineName}</bdi>}{machineName && cwd ? " · " : ""}{cwd && <bdi>{cwd}</bdi>}</p>
             </div>
           ) : null}
+          usageStrip={<PaneUsageStrip agent={agent} />}
           onSend={composerSend}
           onAbort={abortTurn}
           onUploadImage={uploadImage}
